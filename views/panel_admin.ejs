@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Superusuario</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .banco-card { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
+        form { margin-bottom: 30px; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+        input { margin-bottom: 10px; padding: 8px; width: 300px; display: block; }
+        button { padding: 10px 15px; background: #005f73; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Panel de Administración</h1>
+
+    <!-- Formulario para crear un nuevo banco -->
+    <h2>Crear Nuevo Banco de Preguntas</h2>
+    <form action="/crear-banco" method="POST">
+        <label>Nombre del Banco (Ej. Reglas Aditivas):</label>
+        <input type="text" name="nombre" required>
+        
+        <label>Descripción:</label>
+        <input type="text" name="descripcion">
+        
+        <button type="submit">Guardar Banco</button>
+    </form>
+
+    <hr>
+
+    <!-- Lista de bancos existentes -->
+    <h2>Tus Bancos de Preguntas</h2>
+    <% if (bancos.length === 0) { %>
+        <p>Aún no has creado ningún banco.</p>
+    <% } else { %>
+        <% bancos.forEach(banco => { %>
+            <div class="banco-card">
+                <h3><%= banco.nombre %></h3>
+                <p><%= banco.descripcion %></p>
+                <!-- Este botón nos servirá en el siguiente paso para agregar preguntas -->
+                <a href="/banco/<%= banco.id %>"><button style="background: #0a9396;">Administrar Preguntas</button></a>
+            </div>
+        <% }) %>
+    <% } %>
+</body>
+</html>

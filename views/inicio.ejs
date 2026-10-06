@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title><%= titulo %></title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        .botones { margin-top: 30px; }
+        a button { 
+            padding: 15px 30px; 
+            margin: 10px; 
+            font-size: 16px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        .btn-admin { background-color: #e63946; color: white; }
+        .btn-estudiante { background-color: #457b9d; color: white; }
+    </style>
+</head>
+<body>
+    <h1><%= titulo %></h1>
+    <p>Selecciona tu perfil para continuar:</p>
+    
+    <div class="botones">
+        <a href="/estudiante"><button class="btn-estudiante">Entrar como Estudiante</button></a>
+        <a href="/panel-admin"><button class="btn-admin">Panel de Administración</button></a>
+    </div>
+</body>
+</html>

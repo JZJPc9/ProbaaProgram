@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Bancos de Preguntas</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .banco-card { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
+        button { padding: 10px 15px; background: #0077b6; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Exámenes Disponibles</h1>
+    <% bancos.forEach(banco => { %>
+        <div class="banco-card">
+            <h2><%= banco.nombre %></h2>
+            <p><%= banco.descripcion %></p>
+            <a href="/examen/<%= banco.id %>"><button>Iniciar Prueba</button></a>
+        </div>
+    <% }) %>
+</body>
+</html>

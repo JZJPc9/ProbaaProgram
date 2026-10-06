@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Administrar Banco</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: auto; }
+        .pregunta-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-left: 5px solid #005f73; border-radius: 5px; }
+        form { background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 30px; border: 1px solid #eee; }
+        input, textarea { width: 100%; margin-bottom: 15px; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 20px; background: #0a9396; color: white; border: none; cursor: pointer; border-radius: 4px; font-size: 16px; }
+        button:hover { background: #005f73; }
+        a { color: #005f73; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Banco: <%= banco.nombre %></h1>
+    <p><%= banco.descripcion %></p>
+    <a href="/panel-admin">← Volver al Panel de Administración</a>
+    <hr>
+
+    <h2>Agregar Nueva Pregunta Manualmente</h2>
+    <form action="/banco/<%= banco.id %>/agregar-pregunta" method="POST">
+        <label><strong>Texto de la pregunta:</strong></label>
+        <textarea name="texto_pregunta" rows="3" required></textarea>
+
+        <label>Opción A:</label> <input type="text" name="opcionA" required>
+        <label>Opción B:</label> <input type="text" name="opcionB" required>
+        <label>Opción C:</label> <input type="text" name="opcionC" required>
+        <label>Opción D:</label> <input type="text" name="opcionD" required>
+
+        <label><strong>Respuesta Correcta</strong> (Copia y pega exactamente el texto de la opción correcta):</label>
+        <input type="text" name="correcta" required>
+
+        <button type="submit">Guardar Pregunta</button>
+    </form>
+
+    <h2>Preguntas en este banco (<%= preguntas.length %>)</h2>
+    <% if (preguntas.length === 0) { %>
+        <p>Aún no hay preguntas registradas en este banco.</p>
+    <% } else { %>
+        <% preguntas.forEach((p, index) => { %>
+            <div class="pregunta-card">
+                <p><strong><%= index + 1 %>. <%= p.texto_pregunta %></strong></p>
+                <ul>
+                    <% p.opciones.forEach(opcion => { %>
+                        <li><%= opcion %></li>
+                    <% }) %>
+                </ul>
+                <p style="color: #2d6a4f;"><em>Correcta: <%= p.respuesta_correcta %></em></p>
+            </div>
+        <% }) %>
+    <% } %>
+</body>
+</html>
