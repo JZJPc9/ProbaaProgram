@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof titulo !== 'undefined' ? titulo : 'Probabilidad y Estadística — Equipo 6' %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="brand">
+            <span class="brand-logo" aria-hidden="true">
+                <!-- Si deseas usar una imagen propia, guarda public/img/logo.png y descomenta la línea de abajo -->
+                <!-- <img src="/img/logo.png" alt="Logo Equipo 6"> -->
+                <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 25H29" stroke="#94D2BD" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M4 25C9 25 11 8 16 8C21 8 23 25 28 25" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+                    <circle cx="16" cy="8" r="2.2" fill="#2A9D8F"/>
+                    <circle cx="22" cy="18" r="2" fill="#E9C46A"/>
+                </svg>
+            </span>
+            <span>Probabilidad y Estadística — Equipo 6</span>
+        </a>
+        <div class="nav-links">
+            <a href="/estudiante">Bancos de Examen</a>
+            <% if (esAdmin) { %>
+                <a href="/panel-admin">Panel Admin</a>
+                <a href="/logout" style="color:#fca5a5;">Salir</a>
+            <% } %>
+        </div>
+    </nav>
+    <main class="container">

@@ -1,32 +1,33 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Examen en curso</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-        .pregunta { margin-bottom: 25px; background: #f9f9f9; padding: 15px; border-radius: 8px; }
-        .opcion { margin-bottom: 10px; display: block; }
-        button { padding: 10px 20px; background: #2a9d8f; color: white; border: none; font-size: 16px; cursor: pointer; }
-    </style>
-</head>
-<body>
-    <h1>Evaluación</h1>
-    <form action="/calificar" method="POST">
-        <% preguntas.forEach((p, index) => { %>
-            <div class="pregunta">
-                <p><strong><%= index + 1 %>. <%= p.texto_pregunta %></strong></p>
-                
-                <!-- Mezclamos las opciones de cada pregunta para que no siempre la 'A' sea la misma -->
-                <% p.opciones.sort(() => 0.5 - Math.random()).forEach(opcion => { %>
-                    <label class="opcion">
+<%- include('partials/head', { titulo: 'Evaluación en Curso' }) %>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div>
+        <h1><%= banco.nombre %></h1>
+        <p class="muted">Responde todas las preguntas y presiona "Calificar Examen".</p>
+    </div>
+    <span class="badge"><%= preguntas.length %> reactivos</span>
+</div>
+
+<form action="/calificar" method="POST">
+    <input type="hidden" name="bancoId" value="<%= banco.id %>">
+
+    <% preguntas.forEach((p, index) => { %>
+        <div class="card">
+            <h3><%= index + 1 %>. <%- p.texto_pregunta %></h3>
+            <div style="margin-top:14px;">
+                <% p.opciones.forEach(opcion => { %>
+                    <label class="opcion-label">
                         <input type="radio" name="<%= p.id %>" value="<%= opcion %>" required>
-                        <%= opcion %>
+                        <span><%- opcion %></span>
                     </label>
                 <% }) %>
             </div>
-        <% }) %>
-        <button type="submit">Enviar Respuestas</button>
-    </form>
-</body>
-</html>
+        </div>
+    <% }) %>
+
+    <button type="submit" class="btn btn-accent" style="width:100%; padding:14px; font-size:1.05rem;">
+        Calificar Examen
+    </button>
+</form>
+
+<%- include('partials/footer') %>

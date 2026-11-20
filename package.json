@@ -12,9 +12,10 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@supabase/supabase-js": "^2.117.2",
     "dotenv": "^18.0.5",
     "ejs": "^7.0.1",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "pg": "^8.23.1"
   }
 }
