@@ -1,32 +1,45 @@
-<%- include('partials/head', { titulo: 'Resultados' }) %>
+<%- include('partials/head', { titulo: 'Resultados del Diagnóstico' }) %>
+
+<%
+    const porcentaje = Math.round((aciertos / total) * 100);
+    let emoji = '🛰️', tituloRes = 'Sigue practicando';
+    if (porcentaje === 100) { emoji = '🏆'; tituloRes = '¡Diagnóstico Perfecto!'; }
+    else if (porcentaje >= 60) { emoji = '🚀'; tituloRes = '¡Buen trabajo!'; }
+%>
 
 <div class="score-box">
-    <p style="opacity:0.85; margin-bottom:4px;">Resultado Final</p>
+    <div style="font-size: 3rem; margin-bottom: 6px;"><%= emoji %></div>
+    <h2 style="color: #ffffff; margin-bottom: 6px;"><%= tituloRes %></h2>
     <div class="num"><%= aciertos %> / <%= total %></div>
-    <p style="margin-top:4px; font-weight:600;">
-        Calificación: <%= Math.round((aciertos / total) * 100) %>%
-    </p>
+    <p style="color: #8fa0c8; margin-top: 4px;">Calificación: <strong style="color: #3ddc84;"><%= porcentaje %>%</strong></p>
+
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:20px;">
+        <a href="/examen/<%= bancoId %>" class="btn btn-accent">🔁 Nueva ronda (5 reactivos)</a>
+        <a href="/estudiante" class="btn btn-outline">📚 Elegir otra unidad</a>
+    </div>
 </div>
 
-<h2>Revisión Detallada</h2>
+<h2>Desglose de Reactivos</h2>
 
 <% resultados.forEach((r, i) => { %>
     <div class="res-item <%= r.esCorrecta ? 'res-correcta' : 'res-incorrecta' %>">
-        <p style="font-weight:600; margin-bottom:8px;"><%= i + 1 %>. <%- r.texto %></p>
-        <p><strong>Tu respuesta:</strong> <%- r.respondida %></p>
+        <p style="margin-bottom: 8px;"><strong><%= i + 1 %>. <%= r.texto %></strong></p>
+        <p style="margin-bottom: 4px;">
+            Tu respuesta: <strong><%= r.respondida %></strong>
+            <%= r.esCorrecta ? '✅' : '❌' %>
+        </p>
         <% if (!r.esCorrecta) { %>
-            <p style="color:#991b1b; margin-top:4px;">
-                <strong>Respuesta correcta:</strong> <%- r.correcta %>
-            </p>
+            <p style="color: var(--accent);">Respuesta correcta: <strong><%= r.correcta %></strong></p>
         <% } %>
     </div>
 <% }) %>
 
-<div style="display:flex; gap:12px; margin-top:24px;">
-    <% if (bancoId) { %>
-        <a href="/examen/<%= bancoId %>" class="btn btn-accent">Volver a intentar este banco</a>
-    <% } %>
-    <a href="/estudiante" class="btn btn-outline">Elegir otro banco</a>
-</div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const pct = <%= porcentaje %>;
+        if (pct >= 60) window.ProbaSFX.win();
+        else window.ProbaSFX.warn();
+    });
+</script>
 
 <%- include('partials/footer') %>

@@ -6,6 +6,12 @@
     <title><%= typeof titulo !== 'undefined' ? titulo : 'Probabilidad y Estadística — Equipo 6' %></title>
     <link rel="stylesheet" href="/css/styles.css">
     <script>
+        (function() {
+            const savedTheme = localStorage.getItem('proba_theme') || 'dark';
+            if (savedTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
         window.MathJax = {
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
@@ -16,16 +22,15 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
+    <canvas id="bgStars"></canvas>
     <nav class="navbar">
         <a href="/" class="brand">
             <span class="brand-logo" aria-hidden="true">
-                <!-- Si deseas usar una imagen propia, guarda public/img/logo.png y descomenta la línea de abajo -->
-                <!-- <img src="/img/logo.png" alt="Logo Equipo 6"> -->
-                <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 25H29" stroke="#94D2BD" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M4 25C9 25 11 8 16 8C21 8 23 25 28 25" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
-                    <circle cx="16" cy="8" r="2.2" fill="#2A9D8F"/>
-                    <circle cx="22" cy="18" r="2" fill="#E9C46A"/>
+                <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 25H29" stroke="#3DDC84" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M4 25C9 25 11 8 16 8C21 8 23 25 28 25" stroke="#5AD1FF" stroke-width="2.5" stroke-linecap="round"/>
+                    <circle cx="16" cy="8" r="2.4" fill="#FFFFFF"/>
+                    <circle cx="22" cy="18" r="2" fill="#FF5A7A"/>
                 </svg>
             </span>
             <span>Probabilidad y Estadística — Equipo 6</span>
@@ -34,8 +39,123 @@
             <a href="/estudiante">Bancos de Examen</a>
             <% if (esAdmin) { %>
                 <a href="/panel-admin">Panel Admin</a>
-                <a href="/logout" style="color:#fca5a5;">Salir</a>
+                <a href="/logout" style="color:#ff5a7a;">Salir</a>
             <% } %>
+            <button type="button" class="nav-pill-btn" id="sndToggle" title="Activar o silenciar efectos">🔊 Sonido</button>
+            <button type="button" class="nav-pill-btn" id="themeToggle" title="Cambiar tema">☀️ Claro</button>
         </div>
     </nav>
+
+    <script>
+        // Motor de sonido Web Audio API (sin archivos externos)
+        window.ProbaSFX = (function() {
+            let ctx = null;
+            let enabled = localStorage.getItem('proba_sound') !== 'off';
+
+            function init() {
+                if (!ctx) {
+                    try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+                }
+            }
+
+            function tone(freq, dur, type, delay, vol) {
+                if (!enabled) return;
+                init();
+                if (!ctx) return;
+                const t0 = ctx.currentTime + (delay || 0);
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type || 'triangle';
+                osc.frequency.setValueAtTime(freq, t0);
+                gain.gain.setValueAtTime(0, t0);
+                gain.gain.linearRampToValueAtTime(vol || 0.12, t0 + 0.015);
+                gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+                osc.connect(gain).connect(ctx.destination);
+                osc.start(t0);
+                osc.stop(t0 + dur + 0.04);
+            }
+
+            return {
+                isEnabled: () => enabled,
+                toggle: () => {
+                    enabled = !enabled;
+                    localStorage.setItem('proba_sound', enabled ? 'on' : 'off');
+                    if (enabled) tone(520, 0.12, 'triangle', 0, 0.1);
+                    return enabled;
+                },
+                select: () => tone(480, 0.1, 'triangle', 0, 0.1),
+                next: () => { tone(440, 0.1, 'triangle', 0, 0.1); tone(660, 0.14, 'triangle', 0.08, 0.1); },
+                win: () => [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.2, 'triangle', i * 0.11, 0.12)),
+                warn: () => { tone(240, 0.2, 'sawtooth', 0, 0.08); tone(180, 0.24, 'sawtooth', 0.1, 0.08); }
+            };
+        })();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sndBtn = document.getElementById('sndToggle');
+            const themeBtn = document.getElementById('themeToggle');
+
+            function updateButtons() {
+                sndBtn.textContent = window.ProbaSFX.isEnabled() ? '🔊 Sonido' : '🔇 Silencio';
+                const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+                themeBtn.textContent = isLight ? '🌙 Oscuro' : '☀️ Claro';
+            }
+
+            sndBtn.addEventListener('click', () => {
+                window.ProbaSFX.toggle();
+                updateButtons();
+            });
+
+            themeBtn.addEventListener('click', () => {
+                const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+                if (isLight) {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('proba_theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('proba_theme', 'light');
+                }
+                updateButtons();
+            });
+
+            updateButtons();
+
+            // Fondo de partículas/estrellas ligero
+            const canvas = document.getElementById('bgStars');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                const count = Math.floor((canvas.width * canvas.height) / 11000);
+                particles = Array.from({ length: count }, () => ({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 1.5 + 0.4,
+                    p: Math.random() * Math.PI * 2,
+                    s: Math.random() * 0.02 + 0.008
+                }));
+            }
+
+            function renderStars() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+                for (const pt of particles) {
+                    pt.p += pt.s;
+                    const alpha = isLight
+                        ? 0.14 + 0.12 * Math.abs(Math.sin(pt.p))
+                        : 0.25 + 0.45 * Math.abs(Math.sin(pt.p));
+                    ctx.beginPath();
+                    ctx.fillStyle = isLight ? `rgba(29, 53, 87, ${alpha})` : `rgba(90, 209, 255, ${alpha})`;
+                    ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                requestAnimationFrame(renderStars);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+            renderStars();
+        });
+    </script>
     <main class="container">

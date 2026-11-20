@@ -1,33 +1,144 @@
-<%- include('partials/head', { titulo: 'Evaluación en Curso' }) %>
+<%- include('partials/head', { titulo: 'Simulador - ' + banco.nombre }) %>
 
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-    <div>
-        <h1><%= banco.nombre %></h1>
-        <p class="muted">Responde todas las preguntas y presiona "Calificar Examen".</p>
-    </div>
-    <span class="badge"><%= preguntas.length %> reactivos</span>
+<div style="text-align:center; margin-bottom: 14px;">
+    <span class="badge">Diagnóstico Activo · <%= preguntas.length %> Reactivos</span>
+    <h1><%= banco.nombre %></h1>
 </div>
 
-<form action="/calificar" method="POST">
+<!-- Indicadores visuales de los 5 módulos -->
+<div class="module-bay" id="moduleBay">
+    <% const iconos = ['🎲', '📊', '🔔', '🧮', '🎯']; %>
+    <% preguntas.forEach((p, idx) => { %>
+        <button type="button" class="mod-slot <%= idx === 0 ? 'active' : '' %>" data-go="<%= idx %>" title="Ir a pregunta <%= idx + 1 %>">
+            <span><%= iconos[idx % iconos.length] %></span>
+            <span class="num">#<%= idx + 1 %></span>
+        </button>
+    <% }) %>
+</div>
+
+<!-- Barra HUD -->
+<div class="hud">
+    <div class="hudrow">
+        <span id="hudStep">Reactivo 1 de <%= preguntas.length %></span>
+        <span id="hudAnswered">Respondidas: 0 / <%= preguntas.length %></span>
+    </div>
+    <div class="bar">
+        <div id="hudBar" style="width: <%= (1 / preguntas.length) * 100 %>%"></div>
+    </div>
+</div>
+
+<form action="/calificar" method="POST" id="quizForm">
     <input type="hidden" name="bancoId" value="<%= banco.id %>">
 
-    <% preguntas.forEach((p, index) => { %>
-        <div class="card">
-            <h3><%= index + 1 %>. <%- p.texto_pregunta %></h3>
-            <div style="margin-top:14px;">
-                <% p.opciones.forEach(opcion => { %>
+    <% preguntas.forEach((p, idx) => { %>
+        <div class="card question-step <%= idx === 0 ? '' : 'hidden' %>" data-step="<%= idx %>">
+            <div class="qtag">⚡ Reactivo <%= idx + 1 %> — Selecciona la respuesta correcta</div>
+            <div class="qtext"><%= p.texto_pregunta %></div>
+
+            <div>
+                <% p.opciones.forEach((op, opIdx) => { %>
                     <label class="opcion-label">
-                        <input type="radio" name="<%= p.id %>" value="<%= opcion %>" required>
-                        <span><%- opcion %></span>
+                        <input type="radio" name="<%= p.id %>" value="<%= op %>" required data-qidx="<%= idx %>">
+                        <span><strong><%= String.fromCharCode(97 + opIdx) %>)</strong> <%= op %></span>
                     </label>
                 <% }) %>
             </div>
+
+            <div class="quiz-nav">
+                <% if (idx > 0) { %>
+                    <button type="button" class="btn btn-outline prev-btn" data-to="<%= idx - 1 %>">◀ Anterior</button>
+                <% } else { %>
+                    <a href="/estudiante" class="btn btn-outline">Cancelar</a>
+                <% } %>
+
+                <% if (idx < preguntas.length - 1) { %>
+                    <button type="button" class="btn btn-primary next-btn" data-to="<%= idx + 1 %>">Siguiente reactivo ▶</button>
+                <% } else { %>
+                    <button type="submit" class="btn btn-accent" id="submitExamBtn">🚀 Finalizar y Calificar</button>
+                <% } %>
+            </div>
         </div>
     <% }) %>
-
-    <button type="submit" class="btn btn-accent" style="width:100%; padding:14px; font-size:1.05rem;">
-        Calificar Examen
-    </button>
 </form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const total = <%= preguntas.length %>;
+        const steps = document.querySelectorAll('.question-step');
+        const slots = document.querySelectorAll('.mod-slot');
+        const hudStep = document.getElementById('hudStep');
+        const hudAnswered = document.getElementById('hudAnswered');
+        const hudBar = document.getElementById('hudBar');
+        let current = 0;
+
+        function updateHUD() {
+            let answeredCount = 0;
+            steps.forEach((step, idx) => {
+                const checked = step.querySelector('input[type="radio"]:checked');
+                slots[idx].classList.toggle('done', Boolean(checked));
+                slots[idx].classList.toggle('active', idx === current);
+                if (checked) answeredCount++;
+            });
+            hudStep.textContent = `Reactivo ${current + 1} de ${total}`;
+            hudAnswered.textContent = `Respondidas: ${answeredCount} / ${total}`;
+            hudBar.style.width = `${((current + 1) / total) * 100}%`;
+        }
+
+        function goToStep(index) {
+            if (index < 0 || index >= total) return;
+            steps[current].classList.add('hidden');
+            current = index;
+            steps[current].classList.remove('hidden');
+            updateHUD();
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([steps[current]]);
+            }
+        }
+
+        document.querySelectorAll('.next-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const currentCard = steps[current];
+                const checked = currentCard.querySelector('input[type="radio"]:checked');
+                if (!checked) {
+                    window.ProbaSFX.warn();
+                    alert('Selecciona una opción antes de avanzar al siguiente reactivo.');
+                    return;
+                }
+                window.ProbaSFX.next();
+                goToStep(parseInt(btn.dataset.to, 10));
+            });
+        });
+
+        document.querySelectorAll('.prev-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                goToStep(parseInt(btn.dataset.to, 10));
+            });
+        });
+
+        slots.forEach(slot => {
+            slot.addEventListener('click', () => {
+                goToStep(parseInt(slot.dataset.go, 10));
+            });
+        });
+
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                window.ProbaSFX.select();
+                updateHUD();
+            });
+        });
+
+        document.getElementById('quizForm').addEventListener('submit', (e) => {
+            const totalChecked = document.querySelectorAll('input[type="radio"]:checked').length;
+            if (totalChecked < total) {
+                e.preventDefault();
+                window.ProbaSFX.warn();
+                alert(`Aún te faltan ${total - totalChecked} preguntas por responder.`);
+            }
+        });
+
+        updateHUD();
+    });
+</script>
 
 <%- include('partials/footer') %>
